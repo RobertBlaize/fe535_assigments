@@ -1,0 +1,73 @@
+---
+title: "FE535 LAB 3"
+author: "Robert Rodriguez"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+```{r }
+# Download prices for the SPY ETF, dating between 1993-12-31 and 2022-12-31
+library(quantmod)
+getSymbols("SPY", from = "1993-12-31", to = "2022-12-31")
+```
+
+```{r}
+# Compute the daily log-returns over this sample period (do not report)
+SPY_daily_log_returns = diff(log(Cl(SPY)))
+SPY_daily_log_returns = SPY_daily_log_returns[-1] # remove NA
+```
+
+```{r}
+# Assume that the price follows a GBM. Calibrate the model and report both mu and sigma (hats)
+SPY_mu_hat = 252*mean(SPY_daily_log_returns) + SPY_sigma_hat^2/2 # annualized expected log return
+SPY_sigma_hat = sqrt(252*var(SPY_daily_log_returns)[1]) # annualized volatility
+```
+
+```{r}
+# After calibration, simulate the future price over a one-year period based on 
+# the closing price from 2022-12-31.
+# Create at least 1000 simulations and provide a couple of plots as a summary.
+set.seed(123)
+SPY_last_price = Cl(SPY)[nrow(SPY)]
+SPY_simulated_prices = matrix(0, nrow = 252, ncol = 1000)
+for (i in 1:1000) {
+  SPY_simulated_prices[,i] = SPY_last_price*exp(cumsum((SPY_mu_hat - SPY_sigma_hat^2/2) + SPY_sigma_hat*rnorm(252)))
+}
+
+# What is the one-year VaR(0.05)?
+SPY_simulated_prices_1year = SPY_simulated_prices[252,]
+SPY_VaR_1year = quantile(SPY_simulated_prices_1year, 0.05)
+
+
+# Repeat the above tasks using monthly log-returns and report the VaR(0.05).
+
+# How do the results from tasks 5 and 6 compare? Should it matter whether it is 
+# daily or monthly (recall Lab 1)? Elaborate. 
+
+# Finally, suppose that you work with the monthly data. Let us consider some 
+# sensitivity analysis and address the following questions:
+
+# How much does the one-year VaR(0.05) increase if the annual volatility 
+# increases by 5%? 
+
+# Is the relationship between one-year VaR(0.05) and the annual volatility 
+# linear? Elaborate.
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
